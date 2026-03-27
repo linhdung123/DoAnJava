@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chấm công — Hệ thống quản lý</title>
+  <link rel="stylesheet" href="/css/app.css"/>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <h1><span>◆</span> Hệ thống chấm công</h1>
+    <p class="sub">Đăng nhập để chấm công, xin nghỉ phép, gửi ảnh khuôn mặt và quản lý nhân sự theo phân quyền.</p>
+
+    <label>Mã nhân viên</label>
+    <input type="text" id="loginCode" autocomplete="username" placeholder="admin"/>
+    <label>Mật khẩu</label>
+    <input type="password" id="loginPass" autocomplete="current-password" placeholder="••••••••"/>
+    <div id="loginMsg" class="msg msg-error"></div>
+    <button type="button" class="btn btn-secondary" id="btnSaveApi" style="width:100%;margin-top:0.7rem">Lưu API base</button>
+    <button type="button" class="btn btn-primary" id="btnLogin" style="width:100%;margin-top:0.7rem">Đăng nhập</button>
+  </div>
+</div>
+
+<div id="app-shell" class="hidden">
+  <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <button type="button" class="icon-btn" id="btnMenu" aria-label="Mở menu">☰</button>
+    <span class="topbar-title" id="topbarTitle">Tổng quan</span>
+  </header>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><span class="dot"></span> Chấm công</div>
+      <small id="userLabel">—</small>
+    </div>
+    <nav class="nav-scroll">
+      <div class="nav-section-title">Nghiệp vụ</div>
+      <button type="button" class="nav-btn active" data-panel="dashboard" data-title="Tổng quan"><span class="ni">▣</span> Tổng quan</button>
+      <button type="button" class="nav-btn" data-panel="face-enrollment" data-title="Ảnh khuôn mặt"><span class="ni">🧑</span> Ảnh khuôn mặt</button>
+      <button type="button" class="nav-btn" data-panel="leaves" data-title="Đơn nghỉ phép"><span class="ni">📋</span> Đơn nghỉ phép</button>
+      <button type="button" class="nav-btn" data-panel="my-calendar" data-title="Có mặt / vắng / nghỉ"><span class="ni">📅</span> Có mặt / vắng / nghỉ</button>
+      <button type="button" class="nav-btn" data-panel="worktime" data-title="Giờ vào / ra"><span class="ni">⏰</span> Giờ vào / ra</button>
+      <button type="button" class="nav-btn" data-panel="payroll" data-title="Bảng lương tháng"><span class="ni">💰</span> Bảng lương tháng</button>
+      <button type="button" class="nav-btn" data-panel="overtime-logs" data-title="Danh sách tăng ca"><span class="ni">🕔</span> Danh sách tăng ca</button>
+
+      <div class="nav-section-title manager-only">Quản lý</div>
+      <button type="button" class="nav-btn manager-only" data-panel="pending" data-title="Đơn chờ duyệt"><span class="ni">✅</span> Đơn chờ duyệt</button>
+      <button type="button" class="nav-btn manager-only" data-panel="reports" data-title="Báo cáo CSV"><span class="ni">📥</span> Báo cáo CSV</button>
+
+      <div class="nav-section-title admin-only">Quản trị</div>
+      <button type="button" class="nav-btn admin-only" data-panel="employee-create" data-title="Thêm user"><span class="ni">➕</span> Thêm user</button>
+      <button type="button" class="nav-btn admin-only" data-panel="employee-list" data-title="Danh sách nhân viên"><span class="ni">👤</span> Danh sách nhân viên</button>
+      <button type="button" class="nav-btn admin-only" data-panel="face-approval" data-title="Duyệt ảnh khuôn mặt"><span class="ni">🖼</span> Duyệt ảnh khuôn mặt</button>
+      <button type="button" class="nav-btn admin-only" data-panel="departments" data-title="Phòng ban"><span class="ni">🏢</span> Phòng ban</button>
+      <button type="button" class="nav-btn admin-only" data-panel="leave-types" data-title="Loại nghỉ"><span class="ni">🏷</span> Loại nghỉ</button>
+
+    </nav>
+    <div class="sidebar-footer">
+      <button type="button" class="logout-btn" id="btnLogout">Đăng xuất</button>
+    </div>
+  </aside>
+
+  <main class="main-wrap">
+    <section class="panel active" id="panel-dashboard">
+      <header><h2>Tổng quan trong ngày</h2><p>Thống kê nhanh chấm công và nghỉ phép.</p></header>
+      <div class="card">
+        <div class="row">
+          <div><label>Ngày</label><input type="date" id="dashDate"/></div>
+          <button type="button" class="btn btn-primary" id="btnDashLoad">Tải dữ liệu</button>
+        </div>
+        <div id="dashMsg" class="msg msg-error"></div>
+        <div class="stats" id="dashStats"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-face-enrollment">
+      <header><h2>Gửi ảnh khuôn mặt chờ duyệt</h2><p>Manager/Employee tải ảnh khuôn mặt của mình để admin duyệt.</p></header>
+      <div class="card">
+        <label>Ảnh khuôn mặt</label><input type="file" id="faceImageFile" accept="image/*"/>
+        <p class="hint">Ảnh rõ mặt, đủ sáng, một người.</p>
+        <div class="row">
+          <button type="button" class="btn btn-primary" id="btnFaceSubmit">Gửi ảnh chờ duyệt</button>
+          <button type="button" class="btn btn-secondary" id="btnFaceStatus">Xem trạng thái</button>
+          <button type="button" class="btn btn-danger" id="btnReportLostNfc">Báo mất thẻ NFC</button>
+        </div>
+        <div id="faceEnrollMsg" class="msg"></div><pre class="json hidden" id="faceEnrollOut"></pre>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-leaves">
+      <header><h2>Đơn xin nghỉ phép</h2><p>Gửi đơn và theo dõi trạng thái duyệt.</p></header>
+      <div class="card">
+        <h3>Tạo đơn mới</h3>
+        <label>Loại nghỉ</label><select id="leaveTypeId"></select>
+        <div class="row"><div><label>Từ ngày</label><input type="date" id="leaveStart"/></div><div><label>Đến ngày</label><input type="date" id="leaveEnd"/></div></div>
+        <label>Lý do</label><textarea id="leaveReason"></textarea>
+        <button type="button" class="btn btn-primary" id="btnLeaveCreate">Gửi đơn</button>
+        <div id="leaveCreateMsg" class="msg"></div>
+      </div>
+      <div class="card">
+        <h3>Đơn của tôi</h3><button type="button" class="btn btn-secondary" id="btnLeaveList">Làm mới</button>
+        <div class="table-wrap"><table id="leaveMyTable"><thead><tr><th>ID</th><th>Loại</th><th>Từ</th><th>Đến</th><th>Trạng thái</th></tr></thead><tbody></tbody></table></div>
+        <div id="leaveMyMsg" class="msg"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-my-calendar">
+      <header>
+        <h2>Có mặt / vắng / nghỉ</h2>
+        <p>Hiển thị theo phạm vi: mã NV + ngày + trạng thái; tô đỏ nếu có mặt &lt; 8h; có xin phép thì ghi chú.</p>
+      </header>
+      <div class="card">
+        <div class="row">
+          <div><label>Ngày</label><input type="date" id="calDay"/></div>
+          <button type="button" class="btn btn-primary" id="btnMyCalLoad">Xem ngày</button>
+        </div>
+        <div id="myCalMsg" class="msg"></div>
+        <div class="stats hidden" id="myCalSummary"></div>
+        <div class="table-wrap">
+          <table id="myCalTable">
+            <thead>
+              <tr>
+                <th>Mã NV</th>
+                <th>Nhân viên</th>
+                <th>Ngày</th>
+                <th>Trạng thái</th>
+                <th>Tổng có mặt</th>
+                <th>Tăng ca (17-21)</th>
+                <th>Ghi chú</th>
+                <th>Chi tiết log in/out</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-payroll">
+      <header>
+        <h2>Bảng lương</h2>
+        <p>Tổng hợp lương gốc, phụ cấp, OT và tiền phạt đi trễ.</p>
+      </header>
+      <div class="card">
+        <div class="row">
+          <div id="payrollEmpWrap" class="hidden"><label>Employee ID</label><input type="number" id="payrollEmpId" min="1"/></div>
+          <div id="payrollCodeWrap" class="hidden"><label>Tìm theo mã nhân viên</label><input type="text" id="payrollCodeSearch" placeholder="VD: NV001"/></div>
+          <div>
+            <label>Tháng</label>
+            <input type="month" id="payrollMonth"/>
+          </div>
+          <button type="button" class="btn btn-primary" id="btnPayrollLoad">Tính lương</button>
+          <button type="button" class="btn btn-secondary" id="btnPayrollExport">Xuất CSV</button>
+        </div>
+        <div id="payrollMsg" class="msg"></div>
+        <div class="table-wrap"><table id="payrollTable">
+          <thead><tr><th>Mã NV</th><th>Nhân viên</th><th>Tháng/Năm</th><th>Lương gốc</th><th>Ngày công</th><th>Phụ cấp</th><th>OT</th><th>Phạt</th><th>Thực lĩnh</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-overtime-logs">
+      <header><h2>Danh sách tăng ca</h2><p>Danh sách OT đã được duyệt (17:00–21:00), có thể lọc theo ngày hoặc theo tháng.</p></header>
+      <div class="card">
+        <div class="row">
+          <div><label>Tháng</label><input type="month" id="otMonth"/></div>
+          <div><label>Ngày</label><input type="date" id="otDay"/></div>
+          <button type="button" class="btn btn-primary" id="btnOtLoadMonth">Theo tháng</button>
+          <button type="button" class="btn btn-secondary" id="btnOtLoadDay">Theo ngày</button>
+        </div>
+        <div id="otMsg" class="msg"></div>
+        <div class="table-wrap">
+          <table id="otTable">
+            <thead>
+              <tr>
+                <th>Mã NV</th>
+                <th>Nhân viên</th>
+                <th>Ngày</th>
+                <th>Giờ tăng ca</th>
+                <th>Nhóm</th>
+                <th>Ai duyệt</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-worktime">
+      <header><h2>Giờ vào / ra</h2><p>Nhân viên xem của mình, Manager xem nhân viên phòng ban.</p></header>
+      <div class="card">
+        <div class="row">
+          <div><label>Từ ngày</label><input type="date" id="wtFrom"/></div>
+          <div><label>Đến ngày</label><input type="date" id="wtTo"/></div>
+          <button type="button" class="btn btn-primary" id="btnWtLoad">Tải dữ liệu</button>
+        </div>
+        <div id="wtMsg" class="msg"></div>
+        <div class="table-wrap"><table id="wtTable">
+          <thead><tr><th>Mã NV</th><th>Nhân viên</th><th>Ngày</th><th>Giờ vào</th><th>Giờ ra</th><th>Trạng thái</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-pending">
+      <header><h2>Đơn chờ duyệt</h2><p>Manager theo phòng ban, Admin toàn hệ thống.</p></header>
+      <div class="card">
+        <button type="button" class="btn btn-primary" id="btnPendingLoad">Tải danh sách</button>
+        <div id="pendingMsg" class="msg"></div>
+        <div class="table-wrap"><table id="pendingTable"><thead><tr><th>ID</th><th>Nhân viên</th><th>Loại</th><th>Từ</th><th>Đến</th><th>Thao tác</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-face-approval">
+      <header><h2>Duyệt ảnh khuôn mặt</h2></header>
+      <div class="card">
+
+        <button type="button" class="btn btn-primary" id="btnFacePendingLoad" style="margin-top:12px">Tải danh sách chờ duyệt</button>
+        <div id="facePendingMsg" class="msg"></div>
+        <div class="table-wrap"><table id="facePendingTable"><thead><tr><th>ID</th><th>Mã</th><th>Tên</th><th>Ảnh</th><th>Duyệt</th><th>Từ chối</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-reports">
+      <header><h2>Báo cáo chấm công</h2><p>Xuất file CSV theo tháng.</p></header>
+      <div class="card">
+        <div class="row"><div><label>Năm</label><input type="number" id="repYear" min="2020" max="2100"/></div><div><label>Tháng</label><input type="number" id="repMonth" min="1" max="12"/></div><button type="button" class="btn btn-primary" id="btnReportDl">Tải CSV</button></div>
+        <div id="repMsg" class="msg"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-employee-create">
+      <header><h2>Thêm / Sửa user</h2><p>Admin thêm mới hoặc cập nhật tài khoản nhân viên.</p></header>
+      <div class="card">
+        <h3 id="empFormTitle">Thêm nhân viên</h3>
+        <input type="hidden" id="empEditId"/>
+        <label>Mã nhân viên</label><input type="text" id="empCode" placeholder="Manager/Employee tự sinh"/>
+        <label>Họ và tên</label><input type="text" id="empName"/>
+        <label>Email</label><input type="email" id="empEmail"/>
+        <label>Phòng ban</label><select id="empDept"><option value="">—</option></select>
+        <label>Trạng thái</label><select id="empStatus"><option value="ACTIVE">ACTIVE</option><option value="INACTIVE">INACTIVE</option></select>
+        <label>Vai trò</label>
+        <select id="empRole"><option value="ROLE_EMPLOYEE">Nhân viên</option><option value="ROLE_MANAGER">Quản lý</option><option value="ROLE_ADMIN">Quản trị</option></select>
+        <label>Mật khẩu</label><input type="password" id="empPass" placeholder="Admin nhập tay, role khác tự sinh"/>
+        <button type="button" class="btn btn-primary" id="btnEmpSave">Lưu</button>
+        <button type="button" class="btn btn-secondary hidden" id="btnEmpCancel">Huỷ sửa</button>
+        <label>Lương cơ bản</label><input type="number" id="empBaseSalary" min="0" step="1000" placeholder="12000000"/>
+        <label>Phụ cấp</label><input type="number" id="empAllowance" min="0" step="1000" placeholder="1000000"/>
+        <label>Ngày công chuẩn</label><input type="number" id="empStandardDays" min="1" max="31" placeholder="26"/>
+        <div id="empFormMsg" class="msg"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-employee-list">
+      <header><h2>Danh sách nhân viên</h2><p>Danh sách có phân trang để dễ quản lý.</p></header>
+      <div class="card">
+        <h3>Danh sách</h3><button type="button" class="btn btn-secondary" id="btnEmpReload">Làm mới</button>
+        <div class="row" style="margin-top:.75rem">
+          <div>
+            <label>Phòng ban</label>
+            <select id="empFilterDept"><option value="">Tất cả</option></select>
+          </div>
+          <div>
+            <label>Vai trò</label>
+            <select id="empFilterRole">
+              <option value="">Tất cả</option>
+              <option value="ROLE_EMPLOYEE">Nhân viên</option>
+              <option value="ROLE_MANAGER">Quản lý</option>
+              <option value="ROLE_ADMIN">Quản trị</option>
+            </select>
+          </div>
+          <div style="flex:1 1 280px">
+            <label>Tên / Mã NV</label>
+            <input type="text" id="empFilterKeyword" placeholder="Nhập tên hoặc mã nhân viên"/>
+          </div>
+          <button type="button" class="btn btn-secondary" id="btnEmpFilterClear">Xóa lọc</button>
+        </div>
+        <div id="empListMsg" class="msg"></div>
+        <div class="table-wrap"><table id="empTable"><thead><tr><th>ID</th><th>Mã</th><th>Tên</th><th>Phòng</th><th>Vai trò</th><th>NFC</th><th></th></tr></thead><tbody></tbody></table></div>
+        <div class="row" style="margin-top:.75rem;align-items:end">
+          <div>
+            <label>Số dòng/trang</label>
+            <select id="empPageSize">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+          <button type="button" class="btn btn-secondary" id="btnEmpPrev">Trang trước</button>
+          <button type="button" class="btn btn-secondary" id="btnEmpNext">Trang sau</button>
+          <div id="empPageInfo" class="hint">Trang 1/1</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-departments">
+      <header><h2>Phòng ban</h2></header>
+      <div class="card">
+        <input type="hidden" id="deptEditId"/>
+        <label>Tên phòng ban</label><input type="text" id="deptName"/>
+        <label>Mô tả</label><input type="text" id="deptDesc"/>
+        <div class="row">
+          <button type="button" class="btn btn-primary" id="btnDeptSave">Lưu</button>
+          <button type="button" class="btn btn-secondary hidden" id="btnDeptCancel">Huỷ sửa</button>
+        </div>
+        <div id="deptMsg" class="msg"></div>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table id="deptTable"><thead><tr><th>ID</th><th>Tên</th><th>Mô tả</th><th></th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-leave-types">
+      <header><h2>Loại nghỉ</h2></header>
+      <div class="card">
+        <input type="hidden" id="ltEditId"/>
+        <label>Tên loại</label><input type="text" id="ltName"/>
+        <label>Max ngày / năm</label><input type="number" id="ltMax" min="0"/>
+        <label class="checkbox-inline"><input type="checkbox" id="ltPaid" checked/> Nghỉ có lương</label>
+        <label>Phần trăm lương (0.0 - 1.0)</label><input type="number" id="ltPayPercentage" min="0" max="1" step="0.1" value="1"/>
+        <div class="row">
+          <button type="button" class="btn btn-primary" id="btnLtSave">Lưu</button>
+          <button type="button" class="btn btn-secondary hidden" id="btnLtCancel">Huỷ sửa</button>
+        </div>
+        <div id="ltMsg" class="msg"></div>
+      </div>
+      <div class="card">
+        <div class="table-wrap"><table id="ltTable"><thead><tr><th>ID</th><th>Tên</th><th>Max/năm</th><th></th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/modules/core.js"></script>
+<script src="/js/modules/features.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>

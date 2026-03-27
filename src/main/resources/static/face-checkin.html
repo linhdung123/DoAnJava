@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Demo Check-in – Hệ thống Chấm công</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #232636;
+      --border: #2e3248;
+      --accent: #10b981;
+      --accent2: #34d399;
+      --error: #ef4444;
+      --warn: #f59e0b;
+      --text: #e2e8f0;
+      --text-muted: #8892a4;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    header { text-align: center; margin-bottom: 2.5rem; }
+    header .logo { font-size: 3rem; margin-bottom: 0.4rem; }
+    header h1 { font-size: 1.6rem; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    header p  { font-size: 0.9rem; color: var(--text-muted); margin-top: 0.3rem; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      margin-bottom: 1.5rem;
+      transition: box-shadow 0.3s;
+    }
+    .card:hover { box-shadow: 0 12px 40px rgba(16,185,129,0.12); }
+    .card h2 { font-size: 1.05rem; font-weight: 600; margin-bottom: 1.4rem; display: flex; align-items: center; gap: 0.5rem; }
+
+    .form-group { margin-bottom: 1.2rem; }
+    label { display: block; font-size: 0.82rem; color: var(--text-muted); font-weight: 500; margin-bottom: 0.45rem; text-transform: uppercase; letter-spacing: 0.04em; }
+
+    input, textarea, select {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      padding: 0.7rem 1rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+    }
+    textarea { resize: vertical; min-height: 80px; font-size: 0.8rem; font-family: 'Courier New', monospace; }
+    select option { background: var(--surface2); }
+
+    .toggle-row { display: flex; align-items: center; gap: 0.8rem; }
+    .toggle { position: relative; width: 44px; height: 24px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; inset: 0; background: var(--border); border-radius: 24px; transition: 0.3s; cursor: pointer; }
+    .slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+    input:checked + .slider { background: var(--accent); }
+    input:checked + .slider::before { transform: translateX(20px); }
+    .toggle-label { font-size: 0.88rem; color: var(--text); }
+
+    .btn {
+      width: 100%;
+      padding: 0.85rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.15s, box-shadow 0.2s;
+      font-family: inherit;
+      margin-top: 0.5rem;
+    }
+    .btn:hover { transform: translateY(-1px); opacity: 0.92; }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .btn-checkin  { background: linear-gradient(135deg, var(--accent), #059669); color: #fff; box-shadow: 0 4px 14px rgba(16,185,129,0.4); }
+    .btn-checkout { background: linear-gradient(135deg, #6c63ff, #8b5cf6); color: #fff; box-shadow: 0 4px 14px rgba(108,99,255,0.4); }
+
+    .sample-btn {
+      background: none; border: 1px dashed var(--border); color: var(--accent2);
+      border-radius: 6px; padding: 0.28rem 0.65rem; font-size: 0.76rem; cursor: pointer;
+      font-family: inherit; transition: border-color 0.2s, background 0.2s;
+    }
+    .sample-btn:hover { background: rgba(52,211,153,0.08); border-color: var(--accent2); }
+
+    .result-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.2rem;
+      margin-top: 1.2rem;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    .result-card.show { display: block; }
+    .result-card.success { border-color: rgba(16,185,129,0.4); }
+    .result-card.fail    { border-color: rgba(239,68,68,0.4); }
+
+    .info-row { display: flex; justify-content: space-between; padding: 0.45rem 0; border-bottom: 1px solid var(--border); font-size: 0.86rem; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: var(--text-muted); }
+
+    .status-chip {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.25rem 0.75rem; border-radius: 20px;
+      font-size: 0.8rem; font-weight: 600;
+    }
+    .chip-success { background: rgba(16,185,129,0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+    .chip-late    { background: rgba(245,158,11,0.15);  color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+    .chip-error   { background: rgba(239,68,68,0.15);   color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+
+    .alert { padding: 0.85rem 1rem; border-radius: 8px; font-size: 0.88rem; margin-top: 1.1rem; display: none; animation: fadeIn 0.25s ease; }
+    .alert.show { display: block; }
+    .alert-error { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; }
+
+    .time-display {
+      text-align: center;
+      font-size: 2.5rem;
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      color: var(--accent2);
+      margin: 0.5rem 0 1.5rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    footer { margin-top: 2rem; font-size: 0.78rem; color: var(--text-muted); text-align: center; }
+    footer a { color: var(--accent2); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">⏱️</div>
+  <h1>Demo Check-in / Check-out</h1>
+  <p>Test luồng chấm công bằng NFC + Face Embedding</p>
+</header>
+
+<!-- Đồng hồ -->
+<div class="card" style="text-align:center; padding: 1.2rem 2rem">
+  <div class="time-display" id="clock">--:--:--</div>
+  <div style="font-size:0.82rem;color:var(--text-muted)" id="dateLabel"></div>
+</div>
+
+<!-- Form Check-in -->
+<div class="card">
+  <h2><span>✅</span> Check-in</h2>
+
+  <div class="form-group">
+    <label for="nfcUid">NFC UID</label>
+    <input id="nfcUid" type="text" placeholder="Ví dụ: 04AABBCCDD"/>
+  </div>
+
+  <div class="form-group">
+    <label for="ciEmbedding" style="display:flex;justify-content:space-between;align-items:center">
+      Face Embedding (JSON)
+      <button class="sample-btn" onclick="fillEmbedding('ciEmbedding')">Dùng mẫu</button>
+    </label>
+    <textarea id="ciEmbedding" placeholder='[0.12, -0.03, 0.45, ...]'></textarea>
+  </div>
+
+  <div class="form-group">
+    <div class="toggle-row">
+      <label class="toggle">
+        <input type="checkbox" id="liveness" checked/>
+        <span class="slider"></span>
+      </label>
+      <span class="toggle-label">Liveness Passed</span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="locationGps">GPS Location (tuỳ chọn)</label>
+    <input id="locationGps" type="text" placeholder="10.7769,106.7009"/>
+  </div>
+
+  <button id="btnCheckIn" class="btn btn-checkin" onclick="doCheckIn()">⏰ Check-in</button>
+
+  <div id="ciResult" class="result-card"></div>
+  <div id="ciAlert" class="alert alert-error"></div>
+</div>
+
+<!-- Form Check-out -->
+<div class="card">
+  <h2><span>🚪</span> Check-out</h2>
+
+  <div class="form-group">
+    <label for="coNfcUid">NFC UID</label>
+    <input id="coNfcUid" type="text" placeholder="Ví dụ: 04AABBCCDD"/>
+  </div>
+
+  <div class="form-group">
+    <label for="coLocationGps">GPS Location (tuỳ chọn)</label>
+    <input id="coLocationGps" type="text" placeholder="10.7769,106.7009"/>
+  </div>
+
+  <button id="btnCheckOut" class="btn btn-checkout" onclick="doCheckOut()">🏁 Check-out</button>
+
+  <div id="coResult" class="result-card"></div>
+  <div id="coAlert" class="alert alert-error"></div>
+</div>
+
+<footer>
+  <a href="/app.html">🏠 Ứng dụng web</a> &nbsp;·&nbsp;
+  <a href="/face-register.html">🧑‍💼 Trang đăng ký khuôn mặt</a> &nbsp;·&nbsp;
+  <a href="/swagger-ui/index.html" target="_blank">📄 Swagger UI</a>
+</footer>
+
+<script>
+  const API = '';
+
+  function apiHeaders() {
+    const h = { 'Content-Type': 'application/json' };
+    const t = localStorage.getItem('accessToken');
+    if (t) h['Authorization'] = 'Bearer ' + t;
+    return h;
+  }
+
+  // Clock
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent = now.toLocaleTimeString('vi-VN');
+    document.getElementById('dateLabel').textContent = now.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  function fillEmbedding(id) {
+    const arr = Array.from({length: 128}, () => (Math.random() * 2 - 1).toFixed(4));
+    document.getElementById(id).value = '[' + arr.join(', ') + ']';
+  }
+
+  function showAlert(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.className = 'alert alert-error show';
+    setTimeout(() => el.classList.remove('show'), 7000);
+  }
+
+  function renderResult(divId, data) {
+    const el = document.getElementById(divId);
+    const statusClass = data.status === 'LATE' ? 'chip-late' : 'chip-success';
+    el.innerHTML = `
+      <div class="info-row"><span class="info-label">Nhân viên</span><span>${data.fullName} (${data.employeeCode})</span></div>
+      <div class="info-row"><span class="info-label">Check-in</span><span>${data.checkIn ? new Date(data.checkIn).toLocaleString('vi-VN') : '–'}</span></div>
+      <div class="info-row"><span class="info-label">Check-out</span><span>${data.checkOut ? new Date(data.checkOut).toLocaleString('vi-VN') : '–'}</span></div>
+      <div class="info-row"><span class="info-label">Trạng thái</span><span class="status-chip ${statusClass}">${data.status}</span></div>
+      <div class="info-row"><span class="info-label">Phương thức</span><span>${data.verifyMethod}</span></div>
+    `;
+    el.className = 'result-card show success';
+  }
+
+  async function doCheckIn() {
+    const nfcUid = document.getElementById('nfcUid').value.trim();
+    const emb    = document.getElementById('ciEmbedding').value.trim();
+    const liveness = document.getElementById('liveness').checked;
+    const loc      = document.getElementById('locationGps').value.trim();
+
+    if (!nfcUid) { showAlert('ciAlert', 'Vui lòng nhập NFC UID'); return; }
+
+    document.getElementById('ciResult').classList.remove('show');
+    document.getElementById('ciAlert').classList.remove('show');
+
+    const btn = document.getElementById('btnCheckIn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Đang xử lý...';
+
+    const body = {
+      nfcUid,
+      faceEmbeddingJson: emb || null,
+      livenessPassed: liveness,
+      locationGps: loc || null,
+      verifyMethod: 'NFC_FACE'
+    };
+
+    try {
+      const res = await fetch(`${API}/api/attendance/check-in`, {
+        method: 'POST',
+        headers: apiHeaders(),
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) { showAlert('ciAlert', data.error || data.message || 'Lỗi khi check-in'); return; }
+      renderResult('ciResult', data);
+    } catch (e) {
+      showAlert('ciAlert', 'Lỗi kết nối: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '⏰ Check-in';
+    }
+  }
+
+  async function doCheckOut() {
+    const nfcUid = document.getElementById('coNfcUid').value.trim();
+    const loc     = document.getElementById('coLocationGps').value.trim();
+
+    if (!nfcUid) { showAlert('coAlert', 'Vui lòng nhập NFC UID'); return; }
+
+    document.getElementById('coResult').classList.remove('show');
+    document.getElementById('coAlert').classList.remove('show');
+
+    const btn = document.getElementById('btnCheckOut');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Đang xử lý...';
+
+    const body = {
+      nfcUid,
+      locationGps: loc || null
+    };
+
+    try {
+      const res = await fetch(`${API}/api/attendance/check-out`, {
+        method: 'POST',
+        headers: apiHeaders(),
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) { showAlert('coAlert', data.error || data.message || 'Lỗi khi check-out'); return; }
+      renderResult('coResult', data);
+    } catch (e) {
+      showAlert('coAlert', 'Lỗi kết nối: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '🏁 Check-out';
+    }
+  }
+</script>
+</body>
+</html>
