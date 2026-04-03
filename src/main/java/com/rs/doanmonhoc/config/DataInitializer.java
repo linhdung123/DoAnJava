@@ -11,6 +11,7 @@ import com.rs.doanmonhoc.model.LeaveRequestStatus;
 import com.rs.doanmonhoc.model.LeaveType;
 import com.rs.doanmonhoc.model.OvertimeLog;
 import com.rs.doanmonhoc.model.OvertimeType;
+import com.rs.doanmonhoc.model.VerifyMethod;
 import com.rs.doanmonhoc.repository.AttendanceLogRepository;
 import com.rs.doanmonhoc.repository.DepartmentRepository;
 import com.rs.doanmonhoc.repository.EmployeeRepository;
@@ -114,6 +115,21 @@ public class DataInitializer {
             LocalDate today = LocalDate.now(ZONE);
             LocalDate d1 = today.minusDays(1);
             LocalDate d2 = today.minusDays(2);
+            LocalDate d3 = today.minusDays(3);
+            LocalDate d4 = today.minusDays(4);
+            LocalDate d5 = today.minusDays(5);
+            LocalDate d6 = today.minusDays(6);
+            LocalDate d7 = today.minusDays(7);
+            LocalDate d8 = today.minusDays(8);
+            LocalDate d10 = today.minusDays(10);
+            LocalDate d12 = today.minusDays(12);
+
+            // QL001: vài ngày công chuẩn (demo lương / lịch)
+            seedAttendance(attendanceLogRepository, manager, d1, "08:00", "12:00", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, manager, d1, "13:00", "17:15", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, manager, d2, "08:00", "17:10", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, manager, today, "08:00", "12:00", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, manager, today, "13:00", "17:00", AttendanceStatus.ON_TIME);
 
             // NV001: đủ công + có OT
             seedAttendance(attendanceLogRepository, nv1, d1, "08:05", "11:30", AttendanceStatus.LATE);
@@ -127,19 +143,69 @@ public class DataInitializer {
 
             // NV003: không checkin ngày d1 để test ABSENT
 
+            // d2: NV001 nghỉ phép (không log công); NV002, NV003 đủ ca
+            seedAttendance(attendanceLogRepository, nv2, d2, "08:00", "12:00", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv2, d2, "13:00", "17:05", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv3, d2, "08:10", "11:45", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv3, d2, "12:45", "17:00", AttendanceStatus.ON_TIME);
+
+            // d3: NV002 có OT đã seed — check-in đúng giờ + ca tối
+            seedAttendance(attendanceLogRepository, nv1, d3, "08:00", "12:00", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv1, d3, "13:00", "17:00", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv2, d3, "08:02", "12:00", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv2, d3, "13:00", "17:05", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv2, d3, "17:30", "18:45", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv3, d3, "08:15", "17:20", AttendanceStatus.ON_TIME);
+
+            // d4: NV003 có OT đã seed
+            seedAttendance(attendanceLogRepository, nv1, d4, "08:00", "17:00", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv2, d4, "08:05", "17:10", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv3, d4, "08:00", "12:00", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv3, d4, "13:00", "17:00", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv3, d4, "17:30", "19:00", AttendanceStatus.ON_TIME);
+
+            // d5: NV002 nghỉ ốm — không log; NV001, NV003
+            seedAttendance(attendanceLogRepository, nv1, d5, "08:00", "17:05", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv3, d5, "08:20", "12:00", AttendanceStatus.LATE);
+            seedAttendance(attendanceLogRepository, nv3, d5, "13:00", "17:15", AttendanceStatus.ON_TIME);
+
+            // d6: cả ba nhân viên
+            seedAttendance(attendanceLogRepository, nv1, d6, "07:55", "12:00", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv1, d6, "13:00", "17:00", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv2, d6, "08:00", "17:00", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv3, d6, "08:00", "11:30", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv3, d6, "12:30", "16:55", AttendanceStatus.ON_TIME);
+
+            // Các ngày trùng bản ghi OT mẫu — thêm ca tối cho khớp bảng tăng ca
+            seedAttendance(attendanceLogRepository, nv1, d7, "08:00", "17:00", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv1, d7, "17:30", "19:30", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv2, d8, "08:00", "17:00", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv2, d8, "17:30", "18:45", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv1, d10, "08:10", "17:05", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv1, d10, "17:30", "18:30", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv3, d12, "08:00", "12:00", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv3, d12, "13:00", "17:00", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv3, d12, "17:30", "19:30", AttendanceStatus.ON_TIME);
+
+            // Hôm nay: NV001, NV002 (NV003 có đơn nghỉ pending — không seed công)
+            seedAttendance(attendanceLogRepository, nv1, today, "08:00", "12:00", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv1, today, "13:00", "17:10", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv2, today, "08:05", "12:00", AttendanceStatus.ON_TIME);
+            seedAttendance(attendanceLogRepository, nv2, today, "13:00", "17:20", AttendanceStatus.ON_TIME);
+
             // Đơn nghỉ mẫu
             seedLeave(leaveRequestRepository, nv1, phepNam, d2, d2, "Nghỉ phép năm (demo)", LeaveRequestStatus.APPROVED);
             seedLeave(leaveRequestRepository, nv3, viecRieng, today, today, "Xin nghỉ việc riêng (demo)", LeaveRequestStatus.PENDING);
-            seedLeave(leaveRequestRepository, nv2, nghiOm, today.minusDays(5), today.minusDays(5), "Nghỉ ốm (demo)", LeaveRequestStatus.APPROVED);
+            seedLeave(leaveRequestRepository, nv2, nghiOm, d5, d5, "Nghỉ ốm (demo)", LeaveRequestStatus.APPROVED);
 
             // OT mẫu đã duyệt
             seedOvertime(overtimeLogRepository, nv1, d1, 1.5, manager);
-            seedOvertime(overtimeLogRepository, nv1, today.minusDays(7), 2.0, manager);
-            seedOvertime(overtimeLogRepository, nv1, today.minusDays(10), 1.0, manager);
-            seedOvertime(overtimeLogRepository, nv2, today.minusDays(3), 0.75, manager);
-            seedOvertime(overtimeLogRepository, nv2, today.minusDays(8), 1.25, manager);
-            seedOvertime(overtimeLogRepository, nv3, today.minusDays(4), 1.5, manager);
-            seedOvertime(overtimeLogRepository, nv3, today.minusDays(12), 2.0, manager);
+            seedOvertime(overtimeLogRepository, nv1, d7, 2.0, manager);
+            seedOvertime(overtimeLogRepository, nv1, d10, 1.0, manager);
+            seedOvertime(overtimeLogRepository, nv2, d3, 0.75, manager);
+            seedOvertime(overtimeLogRepository, nv2, d8, 1.25, manager);
+            seedOvertime(overtimeLogRepository, nv3, d4, 1.5, manager);
+            seedOvertime(overtimeLogRepository, nv3, d12, 2.0, manager);
         };
     }
 
@@ -196,6 +262,7 @@ public class DataInitializer {
         log.setCheckIn(toInstant(date, checkInHm));
         log.setCheckOut(toInstant(date, checkOutHm));
         log.setStatus(status);
+        log.setVerifyMethod(VerifyMethod.NFC);
         attendanceLogRepository.save(log);
     }
 

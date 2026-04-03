@@ -21,7 +21,6 @@ E:\Baitaptrentruong\Java\FaceRecognition_With_FaceNet_Android\do_an_java
 Hãy viết sao cho backend có thể giao tiếp với frontend và model nhận diện khuôn mặt
 Hoặc viết flutter sao để kết nối với backend và model nhận diện khuôn mặt
 
-
 ## 3. Quy Trình Làm Việc (Workflow Rules)
 - Luôn phải tóm tắt hoặc đưa ra **kế hoạch (plan)** rõ ràng trước khi bắt tay vào sinh code.
 - Hiển thị chi tiết sự thay đổi của các đoạn code (show diffs) trước khi áp dụng chỉnh sửa.
